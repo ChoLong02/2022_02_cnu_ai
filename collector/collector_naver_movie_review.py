@@ -54,11 +54,30 @@ def movie_review_crawler(movie_code):
         review_list = doc.select('div.score_result > ul > li')  # 1page 리뷰 10건
 
         for i, one in enumerate(review_list):  # review 1건씩 수집
-            # 리뷰, 평점, 작성자, 작성일자
+            # 리뷰, 평점, 작성자, 작성일자 + 전처리
             review = one.select('div.score_reple > p > span')[-1].get_text().strip()
             score = one.select('div.star_score > em')[0].get_text()
+            # 전처리: 날짜 시간 → 날짜만 추출
+            #  -예: 2022.10.19 15:28 → 2022.10.19
+            #  - 날짜는 항상 16글자로 구성
+            original_date = one.select('div.score_reple dt > em')[1].get_text()
+            # 문자열 추출
+            # [시작:끝+1] , 끝은 포함 X
+            # [:15]  0~14
+            # [3:]   3~끝까지
+            date = original_date[:10]  # 문자열 추출
+
+            # 예: 상상나라(   [:4] 0~3
+            #     체리링(    [:3] 0~2
+            #     마징가제트( [:5] 0~4
+
+            original_writer = one.select('div.score_reple dt > em')[0].get_text().strip()
+            idx_end = original_writer.find('(')  # (의 인덱스번호
+            writer = original_writer[:idx_end]
+
+            count += 1
+            print(f"## 리뷰→{count} ##################################################################################")
             print(f'# Review: {review}')
+            print(f'# Writer: {writer}')
             print(f'# Score: {score}')
-
-        break
-
+            print(f'# Date: {date}')
